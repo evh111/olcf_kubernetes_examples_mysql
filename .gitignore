@@ -1,3 +1,4 @@
 *.sif
 *.swp
 *.swo
+.DS_Store
