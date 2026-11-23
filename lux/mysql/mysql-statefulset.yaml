@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: mysql
-  namespace: mysql-poc
 spec:
   serviceName: mysql
   replicas: 1
@@ -15,21 +14,22 @@ spec:
         app: mysql
     spec:
       securityContext:
-        fsGroup: 0
+        fsGroup: 2000
+      enableServiceLinks: false
       containers:
         - name: mysql
-          image: quay.io/sclorg/mysql-80-c9s
+          image: quay.io/sclorg/mysql-84-c9s@sha256:38ab8a824330bc0f50dad8a9d961f70b99157684ee53dd2aafa7a3b873c5ffa4
           ports:
-          - containerPort: 3306
-            name: mysql
+            - containerPort: 3306
+              name: mysql
           envFrom:
-          - secretRef:
-              name: mysql-secret # Loads all specified secrets as environmental variables.
-          - configMapRef:
-              name: mysql-config
+            - secretRef:
+                name: mysql-secret
+            - configMapRef:
+                name: mysql-config
           volumeMounts:
-          - name: mysql-data
-            mountPath: /var/lib/mysql/data
+            - name: mysql-data
+              mountPath: /var/lib/mysql/data
           resources:
             requests:
               cpu: "250m"
@@ -39,23 +39,22 @@ spec:
               memory: "1Gi"
           livenessProbe:
             exec:
-              command: ["sh", "-c", "mysqladmin ping -h 127.0.0.1 -u root -p\"$MYSQL_ROOT_PASSWORD\""]
+              command: ["sh", "-c", "MYSQL_PWD=\"$MYSQL_PASSWORD\" mysqladmin ping -h 12.0.0.1 -u \"$MYSQL_USER\""]
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
           readinessProbe:
             exec:
-              command: ["sh", "-c", "mysql -h 127.0.0.1 -u root -p\"$MYSQL_ROOT_PASSWORD\" -e \"SELECT 1\""]
+              command: ["sh", "-c", "MYSQL_PWD=\"$MYSQL_PASSWORD\" mysql -h 127.0.0.1 -u \"$MYSQL_USER\" -e \"SELECT 1\""]
             initialDelaySeconds: 15
             periodSeconds: 5
             timeoutSeconds: 5
-      volumes: []
   volumeClaimTemplates:
-  - metadata:
-      name: mysql-data
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      storageClassName: standard
-      resources:
-        requests:
-          storage: 2Gi
+    - metadata:
+        name: mysql-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: netapp-block
+        resources:
+          requests:
+            storage: 2Gi
