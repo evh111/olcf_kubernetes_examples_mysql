@@ -39,7 +39,7 @@ spec:
               memory: "1Gi"
           livenessProbe:
             exec:
-              command: ["sh", "-c", "MYSQL_PWD=\"$MYSQL_PASSWORD\" mysqladmin ping -h 12.0.0.1 -u \"$MYSQL_USER\""]
+              command: ["sh", "-c", "MYSQL_PWD=\"$MYSQL_PASSWORD\" mysqladmin ping -h 127.0.0.1 -u \"$MYSQL_USER\""]
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
